@@ -1,0 +1,31 @@
+建表create 'mytest',{NAME=>'base_info',VERSION=>1},{NAME=>'extra_info',VERSION=>1}
+准备数据:
+put 'mytest','rowkey003','base_info:name','zc'
+put 'mytest','rowkey003','base_info:age','11'
+put 'mytest','rowkey003','extra_info:month','12'
+put 'mytest','rowkey003','extra_info:city','beijing'
+
+put 'mytest','rowkey005','base_info:name','zc1'
+put 'mytest','rowkey005','base_info:age','3'
+put 'mytest','rowkey0025','extra_info:month','10'
+put 'mytest','rowkey0025','extra_info:city','shanghai'
+
+整合
+set hbase.zookeeper.quorum=172.16.1.170:2181,172.16.1.171:2181,172.16.1.172:2181;
+set zookeeper.znode.parent=/hbase;
+add jar /home/hadoop/hive/lib/hive-hbase-handler-1.2.1.jar;
+
+
+create external table mytest(rowkey string,base_info map<string,string>,extra_info map<string,string>) row format delimited fields terminated by '\t' stored by 'org.apache.hadoop.hive.hbase.HBaseStorageHandler' with serdeproperties("hbase.columns.mapping"=":key,base_info:,extra_info:") tblproperties("hbase.table.name"="my");
+
+
+
+insert into table mytest  select 'rowkey006' AS rowkey,map('c3','name3') as base_info,map('c3','age3') as extra_info from dual limit 1;
+
+
+
+create table hbase_table_1(key int, value string)  stored by 'org.apache.hadoop.hive.hbase.HBaseStorageHandler' with  serdeproperties ("hbase.columns.mapping" = ":key,cf1:val")  tblproperties ("hbase.table.name" = "xyz");
+
+create table hbase_table_1(key int, value string) stored by 'org.apache.hadoop.hive.hbase.HBaseStorageHandler'  
+    > WITH SERDEPROPERTIES ("hbase.columns.mapping" = ":key,cf1:val")   
+    > TBLPROPERTIES ("hbase.table.name" = "xyz");
